@@ -28,6 +28,19 @@ def save_attendance(name):
     except Exception as e:
         print(f"Error writing to attendance file: {e}")
 
+def adjust_brightness_and_contrast(frame, target_brightness=130):
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+
+    avg_brightness = np.mean(v)
+    brightness_factor = target_brightness - avg_brightness
+
+    # Ensuring that the adjustments to v do not change its size or depth
+    v = np.clip(v + brightness_factor, 0, 255).astype(hsv.dtype)
+
+    final_hsv = cv2.merge((h, s, v))
+    return cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+
 
 def main():
     data_folder = r"C:\Users\jessy\Desktop\side projects\FaceScan\Data"
@@ -40,6 +53,8 @@ def main():
         ret, frame = cap.read()
         if not ret:
             break
+        
+        frame = adjust_brightness_and_contrast(frame)
 
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         face_locations = face_recognition.face_locations(rgb_frame)
